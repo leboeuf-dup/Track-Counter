@@ -1,0 +1,86 @@
+* Simple dual opamp ngspice model for the LM358 op-amp
+*
+* Model parameters based on data from https://www.ti.com/lit/ds/symlink/lm358.pdf
+*
+* The model was built as a KiCad schematic, and then exported as a SPICE netlist for
+* inclusion in this file.
+*
+* Notes:
+*   Output voltage limits approximated by nonlinear voltage limiter, with limits
+*     estimated based on Fig 3-5 of https://www.ti.com/lit/pdf/sloa277
+*   Does not include input offset current or input bias current.
+*   Does not model slew rates or noise.
+*   Does not model supply currents.
+*   Input impedance and output impedance estimated from LM368B datasheet and measurements on LM358.
+*
+* The basic modeling approach is the standard Voltage-Controlled Voltage Source with series output resistance found in
+* most circuit analysis textbooks. To this we add a slightly more detailed model of input impedance (the parallel cap), 
+* and an output stage that enforces voltage limits relative to the power rails.
+*
+* See the following for good discussions of how to model op-amps in SPICE:
+*   http://www.ecircuitcenter.com/Circuits/opmodel1/opmodel1.htm 
+*   https://masteringelectronicsdesign.com/build-an-op-amp-spice-model-from-its-datasheet-part-4/ 
+*
+* See also http://ngspice.sourceforge.net/ngspice-eeschema.html#multi
+*
+* Allan McInnes / University of Canterbury / 2024-01-24
+*
+* Revision History
+* -----------------
+* 2020       - initial release
+* 2023-02    - Modified GBW to 1.2Mhz
+* 2024-01    - Revert GBW to 0.7 MHz (match datasheet); add shunt resistor to improve convergence; rework to better fit KiCad 7.0 
+* 2024-12-03 - Move internalLM358 inside top-level LM358 subckt
+* 2024-12-05 - Add variable output voltage swing from rail approximated from SLOA277 
+*            - Remove pole: it probably isn't relevant for most gain/frequency combinations likely to be used in ENEL200, and seems
+*              to cause wildly inaccurate behaviour when attempting to use the op-amp open loop as a comparator
+*            - Implement input offset voltage
+*
+* Disclaimer: Intended for use in ENEL200 simulation labs. Not guaranteed to be adequate or sufficient for any other use.
+* 
+
+
+* Complete dual op-amp package with A and B connections
+.subckt LM358 out1 in1- in1+ v- in2+ in2- out2 v+
+XUA out1 in1- in1+ v- v+ internalLM358
+XUB out2 in2- in2+ v- v+ internalLM358
+
+* Single (A) op-amp from a package
+*
+*                     out   in-  in+   v-  v+    
+*                      |     |    |    |   |
+*                      |     |    |    |   |
+.subckt internalLM358 V_OUT V_IN- V_IN+ VEE VCC
+
+.param RSHUNT=10G
+.param ROUT=40
+
+* Internal reference
+B1 V_REF 0 V=0.5*(V(VCC) + V(VEE))
+R_SHUNT1 V_REF 0 {RSHUNT}
+
+* Output limit reference - based on a linear fit through output current vs voltage curve
+B2 V_LIM 0 V=33.086*((V(V_ROUT)-V(V_OUT))/ROUT)+1.1745
+R_SHUNT2 V_LIM 0 {RSHUNT}
+
+* Input offset voltage
+V_OFF V_IN+ V_IN+OFFSET 410u
+R_SHUNT3 V_IN+OFFSET 0 {RSHUNT}
+
+* Input impedance and gain
+R_INPUT_DIFF1 V_IN+OFFSET V_IN- 10Meg
+C_INPUT_DIFF1 V_IN+OFFSET V_IN- 0.1p
+E1 V_GAIN 0 V_IN+OFFSET V_IN- 100k
+R_SHUNT4 V_GAIN 0 {RSHUNT}
+
+* Output saturation 
+B_BUFFER1 V_ROUT V_REF V = ((V(V_GAIN) < (V(VEE)+5m)) ? (V(VEE)+5m) : ((V(V_GAIN) > (V(VCC)-V(V_LIM))) ? (V(VCC)-V(V_LIM)) : V(V_GAIN))) - V(V_REF)
+R_SHUNT5 V_ROUT 0 {RSHUNT}
+
+* Output impedance
+R_OUTPUT1 V_OUT V_ROUT {ROUT}
+
+.ends
+.ends
+
+

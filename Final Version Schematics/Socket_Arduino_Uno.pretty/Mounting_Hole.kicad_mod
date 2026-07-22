@@ -1,0 +1,88 @@
+(footprint "Mounting_Hole"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(descr "Arduino mounting hole")
+	(tags "mounting")
+	(property "Reference" "REF**"
+		(at 0 -3.048 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "0be2af58-169a-4a56-afff-65b74db5b351")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "1pin"
+		(at 0 2.794 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f9d17daf-5f14-4f61-b88d-bfc9f5264b59")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "fd89d06c-c948-4bac-aa32-57c86bb16237")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "aa710821-6f9e-42ed-b84d-3b1b2a739253")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e4c6d3f6-65a2-4d16-b995-0e92e61a6934")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_circle
+		(center 0 0)
+		(end 0 -2.286)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(fill none)
+		(layer "F.SilkS")
+		(uuid "e75cb625-ace3-46f9-bbdc-c26f4325a24d")
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 4.064 4.064)
+		(drill 3.048)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "c011a92e-3474-4aee-a8ba-30bf7fac5434")
+	)
+)
