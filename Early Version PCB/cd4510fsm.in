@@ -1,0 +1,152 @@
+* Finite state machine for the CD4510
+* Counts from 0 to 9, incrementing or decrementing on each clock
+* depending on the state of the upd input.
+* Does not increment when cin is high.
+* When preset is enabled (pen) the counter state is determined by the p inputs
+*
+* See https://www.ti.com/lit/ds/symlink/cd4510b.pdf for truth table and logic
+*
+* Allan McInnes / University of Canterbury / 2024-12-10
+*
+* General format:
+* [state#] [outputs] [inputs] -> [next state#]
+* q1 q2 q3 q4 cout; upd cin pen p1 p2 p3 p4
+0 0s 0s 0s 0s 1s 1 0 x x x x x -> 1
+                 0 0 x x x x x -> 9
+                 x 1 x x x x x -> 0
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+1 1s 0s 0s 0s 1s 1 0 x x x x x -> 2
+                 0 0 x x x x x -> 0
+                 x 1 x x x x x -> 1
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+2 0s 1s 0s 0s 1s 1 0 x x x x x -> 3
+                 0 0 x x x x x -> 1
+                 x 1 x x x x x -> 2
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+3 1s 1s 0s 0s 1s 1 0 x x x x x -> 4
+                 0 0 x x x x x -> 2
+                 x 1 x x x x x -> 3
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+4 0s 0s 1s 0s 1s 1 0 x x x x x -> 5
+                 0 0 x x x x x -> 3
+                 x 1 x x x x x -> 4
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+5 1s 0s 1s 0s 1s 1 0 x x x x x -> 6
+                 0 0 x x x x x -> 4
+                 x 1 x x x x x -> 5
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+6 0s 1s 1s 0s 1s 1 0 x x x x x -> 7
+                 0 0 x x x x x -> 5
+                 x 1 x x x x x -> 6
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+7 1s 1s 1s 0s 1s 1 0 x x x x x -> 8
+                 0 0 x x x x x -> 6
+                 x 1 x x x x x -> 7
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+8 0s 0s 0s 1s 1s 1 0 x x x x x -> 9
+                 0 0 x x x x x -> 7
+                 x 1 x x x x x -> 8
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
+
+9 1s 0s 0s 1s 0s 1 0 x x x x x -> 0
+                 0 0 x x x x x -> 8
+                 x 1 x x x x x -> 9
+                 x x 1 0 0 0 0 -> 0
+                 x x 1 1 0 0 0 -> 1
+                 x x 1 0 1 0 0 -> 2
+                 x x 1 1 1 0 0 -> 3
+                 x x 1 0 0 1 0 -> 4
+                 x x 1 1 0 1 0 -> 5
+                 x x 1 0 1 1 0 -> 6
+                 x x 1 1 1 1 0 -> 7
+                 x x 1 0 0 0 1 -> 8
+                 x x 1 1 0 0 1 -> 9
